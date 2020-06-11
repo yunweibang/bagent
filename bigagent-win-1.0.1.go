@@ -61,7 +61,7 @@ func (p *program) run() {
 	r := req.New()
 	if debug := os.Getenv("debug"); debug != "" {
 		req.Debug = true
-		log.Println("%+v", conf)
+		log.Printf("%+v", conf)
 	}
 	r.SetFlags(req.Lcost | req.LrespBody | req.LrespHead)
 	//r.SetFlags(req.LstdFlags)
@@ -153,18 +153,18 @@ func main() {
 	prg := &program{}
 	s, err := service.New(prg, svcConfig)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("new service error:",err)
 	}
 	logger, err = s.Logger(nil)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("logger init error:",err)
 	}
 
 	if len(os.Args) > 1 {
 		switch os.Args[1] {
 		case "install":
 			if err := s.Install(); err != nil {
-				log.Fatalln(err)
+				log.Fatalln("install service error:",err)
 			}
 			log.Println("Service installed successfully.")
 		case "uninstall":
@@ -172,27 +172,27 @@ func main() {
 				log.Println(err)
 			}
 			if err := s.Uninstall(); err != nil {
-				log.Fatalln(err)
+				log.Fatalln("uninstall service error:",err)
 			}
 			log.Println("Service uninstalled successfully.")
 		case "start":
 			if err := s.Start(); err != nil {
-				log.Fatalln(err)
+				log.Fatalln("start service error:",err)
 			}
 			log.Println("Service started successfully.")
 		case "stop":
 			if err := s.Stop(); err != nil {
-				log.Fatalln(err)
+				log.Fatalln("stop service error:",err)
 			}
 			log.Println("Service stoped successfully.")
 		case "restart":
 			if err := s.Restart(); err != nil {
-				log.Fatalln(err)
+				log.Fatalln("restart service error:",err)
 			}
 			log.Println("Service restart successfully.")
 		case "run":
 			if err := s.Run(); err != nil {
-				log.Fatalln(err)
+				log.Fatalln("run error:", err)
 			}
 		case "/v", "-v", "-V":
 			fmt.Println(version())
@@ -258,7 +258,8 @@ func zabbixVersion() string {
 	version := "not_running"
 	ps, err := process.Processes()
 	if err != nil {
-		log.Fatalln(err)
+		log.Println("zabbixVersion error:",err)
+		return ""
 	}
 	for _, p := range ps {
 		exe, err := p.Exe()
@@ -280,7 +281,8 @@ func listAllSchtasks() string {
 	cmd := exec.Command("schtasks", "/query")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("listAllSchtasks error:",string(out),err)
+		return ""
 	}
 	data := strings.Split(string(out), "\r\n")
 
@@ -293,7 +295,8 @@ func listAllNetstat() string {
 	cmd := exec.Command("netstat", "-ano")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("listAllNetstat error:",string(out),err)
+		return ""
 	}
 	netstats := strings.Split(string(out), "\r\n")
 	data := []string{}
@@ -313,7 +316,8 @@ func listAllProcess() string {
 	cmd := exec.Command("tasklist", "/FO", "csv", "/NH")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Fatal(err)
+		log.Println("listAllProcess error:",string(out),err)
+		return ""
 	}
 	all, _ := csv.NewReader(bytes.NewReader(out)).ReadAll()
 	data := []string{}
